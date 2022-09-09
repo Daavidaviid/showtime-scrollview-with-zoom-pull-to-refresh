@@ -1,0 +1,524 @@
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.ios.js b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.ios.js
+index 56d7ea3..b9605e4 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.ios.js
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.ios.js
+@@ -9,9 +9,10 @@ import RefreshControlContainer from "./refresh-control";
+ import { animateToRefresh, mScrollTo } from "./utils";
+ const { width } = Dimensions.get("window");
+ // Todo: temporarily add `.ios.tsx` file to try the bounces effect, will be merged into `gesture-container.tsx` after stabilization
+-export const GestureContainer = React.forwardRef(function GestureContainer({ refreshHeight = 80, pullExtendedCoefficient = 0.1, overflowPull = 50, overflowHeight = 0, scrollEnabled = true, minHeaderHeight = 0, isRefreshing: isRefreshingProp = false, initialPage, onStartRefresh, initTabbarHeight = 49, initHeaderHeight = 0, renderScrollHeader, renderAbsoluteBackgroundContent, renderAbsoluteForegroundContent, renderTabView, renderRefreshControl: renderRefreshControlProp, animationHeaderPosition, animationHeaderHeight, panHeaderMaxOffset, onPullEnough, refreshControlColor, refreshControlTop = 0, emptyBodyComponent, navigationState, renderSceneHeader, }, forwardedRef) {
++export const GestureContainer = React.forwardRef(function GestureContainer({ refreshHeight = 80, pullExtendedCoefficient = 0.1, overflowPull = 50, overflowHeight = 0, scrollEnabled = true, minHeaderHeight = 0, isRefreshing: isRefreshingProp = false, initialPage, onStartRefresh, initTabbarHeight = 49, initHeaderHeight = 0, renderScrollHeader, overridenScrollY, overridenTranslateYValue, renderTabView, renderRefreshControl: renderRefreshControlProp, animationHeaderPosition, animationHeaderHeight, panHeaderMaxOffset, onPullEnough, refreshControlColor, refreshControlTop = 0, emptyBodyComponent, navigationState, renderSceneHeader, }, forwardedRef) {
+     //#region animation value
+-    const shareAnimatedValue = useSharedValue(0);
++    const shareAnimatedValue = overridenScrollY || useSharedValue(0);
++    const translateYValue = overridenTranslateYValue || useSharedValue(0);
+     const curIndexValue = useSharedValue(initialPage);
+     const isSlidingHeader = useSharedValue(false);
+     const slideIndex = useSharedValue(curIndexValue.value);
+@@ -278,15 +279,13 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+     const renderRefreshControl = useCallback(() => {
+         if (!onStartRefresh)
+             return;
+-        return (<RefreshControlContainer top={refreshControlTop} refreshHeight={refreshHeight} overflowPull={overflowPull} refreshValue={tabsTrans} opacityValue={opacityValue} isRefreshing={isRefreshing} isRefreshingWithAnimation={isRefreshingWithAnimation} pullExtendedCoefficient={pullExtendedCoefficient} renderContent={renderRefreshControlProp} refreshControlColor={refreshControlColor}/>);
++        return (<RefreshControlContainer top={refreshControlTop} refreshHeight={refreshHeight} translateYValue={translateYValue} refreshValue={tabsTrans} opacityValue={opacityValue} isRefreshing={isRefreshing} isRefreshingWithAnimation={isRefreshingWithAnimation} renderContent={renderRefreshControlProp} refreshControlColor={refreshControlColor}/>);
+     }, [
+         renderRefreshControlProp,
+         isRefreshing,
+         isRefreshingWithAnimation,
+         onStartRefresh,
+         opacityValue,
+-        overflowPull,
+-        pullExtendedCoefficient,
+         refreshControlColor,
+         refreshControlTop,
+         refreshHeight,
+@@ -407,7 +406,7 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+             ],
+         };
+     });
+-    const translateYValue = useRefreshDerivedValue({
++    useRefreshDerivedValue(translateYValue, {
+         animatedValue: tabsTrans,
+         refreshHeight,
+         overflowPull,
+@@ -442,7 +441,7 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+         <GestureDetector gesture={gestureHandlerHeader}>
+           <Animated.View style={styles.container}>
+             {renderScrollHeader && (<View onLayout={headerOnLayout}>
+-                {renderScrollHeader(translateYValue)}
++                {renderScrollHeader()}
+               </View>)}
+             {navigationState?.routes.length === 0 && emptyBodyComponent ? (<View style={{ marginTop: tabbarHeight }}>
+                 {emptyBodyComponent}
+@@ -494,9 +493,6 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+         }}>
+       <GestureDetector gesture={gestureHandler}>
+         <Animated.View style={[styles.container, opacityStyle]}>
+-          {!!renderAbsoluteBackgroundContent && (<View style={styles.absoluteBackground}>
+-              {renderAbsoluteBackgroundContent(translateYValue)}
+-            </View>)}
+           <Animated.View style={[styles.container, animateStyle]} onLayout={containerOnLayout}>
+             {renderTabView({
+             renderTabBarContainer: _renderTabBarContainer,
+@@ -504,9 +500,6 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+         })}
+           </Animated.View>
+           {renderRefreshControl()}
+-          {!!renderAbsoluteForegroundContent && (<View style={styles.absoluteBackground}>
+-              {renderAbsoluteForegroundContent()}
+-            </View>)}
+         </Animated.View>
+       </GestureDetector>
+     </HeaderTabContext.Provider>);
+@@ -522,10 +515,5 @@ const styles = StyleSheet.create({
+         right: 0,
+         zIndex: 10,
+     },
+-    absoluteBackground: {
+-        position: "absolute",
+-        top: 0,
+-        width: "100%",
+-    },
+ });
+ //# sourceMappingURL=gesture-container.ios.js.map
+\ No newline at end of file
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.js b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.js
+index d38cfba..d68b402 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.js
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/gesture-container.js
+@@ -8,9 +8,10 @@ import { useSceneInfo } from "./hooks/use-scene-info";
+ import RefreshControlContainer from "./refresh-control";
+ import { animateToRefresh, mScrollTo } from "./utils";
+ const { width } = Dimensions.get("window");
+-export const GestureContainer = React.forwardRef(function GestureContainer({ refreshHeight = 80, pullExtendedCoefficient = 0.1, overflowPull = 50, overflowHeight = 0, scrollEnabled = true, minHeaderHeight = 0, isRefreshing: isRefreshingProp = false, initialPage, onStartRefresh, initTabbarHeight = 49, initHeaderHeight = 0, renderScrollHeader, renderAbsoluteBackgroundContent, renderAbsoluteForegroundContent, renderTabView, renderRefreshControl: renderRefreshControlProp, animationHeaderPosition, animationHeaderHeight, panHeaderMaxOffset, onPullEnough, refreshControlColor, refreshControlTop = 0, emptyBodyComponent, navigationState, renderSceneHeader, }, forwardedRef) {
++export const GestureContainer = React.forwardRef(function GestureContainer({ refreshHeight = 80, pullExtendedCoefficient = 0.1, overflowPull = 50, overflowHeight = 0, scrollEnabled = true, minHeaderHeight = 0, isRefreshing: isRefreshingProp = false, initialPage, onStartRefresh, initTabbarHeight = 49, initHeaderHeight = 0, renderScrollHeader, overridenScrollY, overridenTranslateYValue, renderTabView, renderRefreshControl: renderRefreshControlProp, animationHeaderPosition, animationHeaderHeight, panHeaderMaxOffset, onPullEnough, refreshControlColor, refreshControlTop = 0, emptyBodyComponent, navigationState, renderSceneHeader, }, forwardedRef) {
+     //#region animation value
+-    const shareAnimatedValue = useSharedValue(0);
++    const shareAnimatedValue = overridenScrollY || useSharedValue(0);
++    const translateYValue = overridenTranslateYValue || useSharedValue(0);
+     const curIndexValue = useSharedValue(initialPage);
+     const isSlidingHeader = useSharedValue(false);
+     const slideIndex = useSharedValue(curIndexValue.value);
+@@ -276,15 +277,14 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+     const renderRefreshControl = useCallback(() => {
+         if (!onStartRefresh)
+             return;
+-        return (<RefreshControlContainer top={refreshControlTop} refreshHeight={refreshHeight} overflowPull={overflowPull} refreshValue={tabsTrans} opacityValue={opacityValue} isRefreshing={isRefreshing} isRefreshingWithAnimation={isRefreshingWithAnimation} pullExtendedCoefficient={pullExtendedCoefficient} renderContent={renderRefreshControlProp} refreshControlColor={refreshControlColor}/>);
++        return (<RefreshControlContainer top={refreshControlTop} refreshHeight={refreshHeight} translateYValue={translateYValue} refreshValue={tabsTrans} opacityValue={opacityValue} isRefreshing={isRefreshing} isRefreshingWithAnimation={isRefreshingWithAnimation} renderContent={renderRefreshControlProp} refreshControlColor={refreshControlColor}/>);
+     }, [
+         renderRefreshControlProp,
+         isRefreshing,
+         isRefreshingWithAnimation,
+         onStartRefresh,
+         opacityValue,
+-        overflowPull,
+-        pullExtendedCoefficient,
++        translateYValue,
+         refreshControlColor,
+         refreshControlTop,
+         refreshHeight,
+@@ -395,7 +395,7 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+             ],
+         };
+     });
+-    const translateYValue = useRefreshDerivedValue({
++    useRefreshDerivedValue(translateYValue, {
+         animatedValue: tabsTrans,
+         refreshHeight,
+         overflowPull,
+@@ -430,7 +430,7 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+         <GestureDetector gesture={gestureHandlerHeader}>
+           <Animated.View style={styles.container}>
+             {renderScrollHeader && (<View onLayout={headerOnLayout}>
+-                {renderScrollHeader(translateYValue)}
++                {renderScrollHeader()}
+               </View>)}
+             {navigationState?.routes.length === 0 && emptyBodyComponent ? (<View style={{ marginTop: tabbarHeight }}>
+                 {emptyBodyComponent}
+@@ -482,9 +482,6 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+         }}>
+       <GestureDetector gesture={gestureHandler}>
+         <Animated.View style={[styles.container, opacityStyle]}>
+-          {!!renderAbsoluteBackgroundContent && (<View style={styles.absoluteBackground}>
+-              {renderAbsoluteBackgroundContent(translateYValue)}
+-            </View>)}
+           <Animated.View style={[styles.container, animateStyle]} onLayout={containerOnLayout}>
+             {renderTabView({
+             renderTabBarContainer: _renderTabBarContainer,
+@@ -492,9 +489,6 @@ export const GestureContainer = React.forwardRef(function GestureContainer({ ref
+         })}
+           </Animated.View>
+           {renderRefreshControl()}
+-          {!!renderAbsoluteForegroundContent && (<View style={styles.absoluteBackground}>
+-              {renderAbsoluteForegroundContent()}
+-            </View>)}
+         </Animated.View>
+       </GestureDetector>
+     </HeaderTabContext.Provider>);
+@@ -510,10 +504,5 @@ const styles = StyleSheet.create({
+         right: 0,
+         zIndex: 10,
+     },
+-    absoluteBackground: {
+-        position: "absolute",
+-        top: 0,
+-        width: "100%",
+-    },
+ });
+ //# sourceMappingURL=gesture-container.js.map
+\ No newline at end of file
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/hooks/use-refresh-value.js b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/hooks/use-refresh-value.js
+index 241a6c1..8e3d915 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/hooks/use-refresh-value.js
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/hooks/use-refresh-value.js
+@@ -1,7 +1,7 @@
+ import { interpolate, useDerivedValue, } from "react-native-reanimated";
+-export const useRefreshDerivedValue = ({ refreshHeight, overflowPull, animatedValue, pullExtendedCoefficient, }) => {
++export const useRefreshDerivedValue = (translateYValue, { refreshHeight, overflowPull, animatedValue, pullExtendedCoefficient, }) => {
+     return useDerivedValue(() => {
+-        return interpolate(animatedValue.value, [0, refreshHeight + overflowPull, refreshHeight + overflowPull + 1], [
++        translateYValue.value = interpolate(animatedValue.value, [0, refreshHeight + overflowPull, refreshHeight + overflowPull + 1], [
+             0,
+             refreshHeight + overflowPull,
+             refreshHeight + overflowPull + pullExtendedCoefficient,
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/refresh-control.js b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/refresh-control.js
+index 9c0f0f7..8581a18 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/refresh-control.js
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/dist/refresh-control.js
+@@ -1,21 +1,14 @@
+ import React, { memo } from "react";
+ import { ActivityIndicator, StyleSheet } from "react-native";
+ import Animated, { useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, } from "react-native-reanimated";
+-import { useRefreshDerivedValue } from "./hooks";
+ import { RefreshTypeEnum } from "./types";
+-const RefreshControlContainer = ({ top, refreshHeight, overflowPull, opacityValue, refreshValue, isRefreshing, isRefreshingWithAnimation, pullExtendedCoefficient, renderContent, refreshControlColor = "#999999", }) => {
++const RefreshControlContainer = ({ top, refreshHeight, opacityValue, refreshValue, isRefreshing, translateYValue, isRefreshingWithAnimation, renderContent, refreshControlColor = "#999999", }) => {
+     const refreshType = useSharedValue(RefreshTypeEnum.Idle);
+     const progress = useDerivedValue(() => {
+         if (isRefreshingWithAnimation.value)
+             return 1;
+         return Math.min(refreshValue.value / refreshHeight, 1);
+     });
+-    const tranYValue = useRefreshDerivedValue({
+-        animatedValue: refreshValue,
+-        refreshHeight,
+-        overflowPull,
+-        pullExtendedCoefficient,
+-    });
+     useAnimatedReaction(() => {
+         return {
+             prs: progress.value,
+@@ -42,7 +35,7 @@ const RefreshControlContainer = ({ top, refreshHeight, overflowPull, opacityValu
+             opacity: opacityValue.value,
+             transform: [
+                 {
+-                    translateY: tranYValue.value,
++                    translateY: translateYValue.value,
+                 },
+             ],
+         };
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.ios.tsx b/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.ios.tsx
+index ded93ed..3e5585a 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.ios.tsx
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.ios.tsx
+@@ -58,8 +58,8 @@ export const GestureContainer = React.forwardRef<
+     initTabbarHeight = 49,
+     initHeaderHeight = 0,
+     renderScrollHeader,
+-    renderAbsoluteBackgroundContent,
+-    renderAbsoluteForegroundContent,
++    overridenScrollY,
++    overridenTranslateYValue,
+     renderTabView,
+     renderRefreshControl: renderRefreshControlProp,
+     animationHeaderPosition,
+@@ -75,7 +75,8 @@ export const GestureContainer = React.forwardRef<
+   forwardedRef
+ ) {
+   //#region animation value
+-  const shareAnimatedValue = useSharedValue(0);
++  const shareAnimatedValue = overridenScrollY || useSharedValue(0);
++  const translateYValue = overridenTranslateYValue || useSharedValue(0);
+   const curIndexValue = useSharedValue(initialPage);
+   const isSlidingHeader = useSharedValue(false);
+   const slideIndex = useSharedValue(curIndexValue.value);
+@@ -398,12 +399,11 @@ export const GestureContainer = React.forwardRef<
+       <RefreshControlContainer
+         top={refreshControlTop}
+         refreshHeight={refreshHeight}
+-        overflowPull={overflowPull}
+         refreshValue={tabsTrans}
++        translateYValue={translateYValue}
+         opacityValue={opacityValue}
+         isRefreshing={isRefreshing}
+         isRefreshingWithAnimation={isRefreshingWithAnimation}
+-        pullExtendedCoefficient={pullExtendedCoefficient}
+         renderContent={renderRefreshControlProp}
+         refreshControlColor={refreshControlColor}
+       />
+@@ -414,8 +414,6 @@ export const GestureContainer = React.forwardRef<
+     isRefreshingWithAnimation,
+     onStartRefresh,
+     opacityValue,
+-    overflowPull,
+-    pullExtendedCoefficient,
+     refreshControlColor,
+     refreshControlTop,
+     refreshHeight,
+@@ -578,7 +576,7 @@ export const GestureContainer = React.forwardRef<
+     };
+   });
+ 
+-  const translateYValue = useRefreshDerivedValue({
++  useRefreshDerivedValue(translateYValue, {
+     animatedValue: tabsTrans,
+     refreshHeight,
+     overflowPull,
+@@ -618,7 +616,7 @@ export const GestureContainer = React.forwardRef<
+           <Animated.View style={styles.container}>
+             {renderScrollHeader && (
+               <View onLayout={headerOnLayout}>
+-                {renderScrollHeader(translateYValue)}
++                {renderScrollHeader()}
+               </View>
+             )}
+             {navigationState?.routes.length === 0 && emptyBodyComponent ? (
+@@ -703,11 +701,6 @@ export const GestureContainer = React.forwardRef<
+     >
+       <GestureDetector gesture={gestureHandler}>
+         <Animated.View style={[styles.container, opacityStyle]}>
+-          {!!renderAbsoluteBackgroundContent && (
+-            <View style={styles.absoluteBackground}>
+-              {renderAbsoluteBackgroundContent(translateYValue)}
+-            </View>
+-          )}
+           <Animated.View
+             style={[styles.container, animateStyle]}
+             onLayout={containerOnLayout}
+@@ -718,11 +711,6 @@ export const GestureContainer = React.forwardRef<
+             })}
+           </Animated.View>
+           {renderRefreshControl()}
+-          {!!renderAbsoluteForegroundContent && (
+-            <View style={styles.absoluteBackground}>
+-              {renderAbsoluteForegroundContent()}
+-            </View>
+-          )}
+         </Animated.View>
+       </GestureDetector>
+     </HeaderTabContext.Provider>
+@@ -740,9 +728,4 @@ const styles = StyleSheet.create({
+     right: 0,
+     zIndex: 10,
+   },
+-  absoluteBackground: {
+-    position: "absolute",
+-    top: 0,
+-    width: "100%",
+-  },
+ });
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.tsx b/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.tsx
+index 924dec6..92f7c5b 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.tsx
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/gesture-container.tsx
+@@ -57,8 +57,8 @@ export const GestureContainer = React.forwardRef<
+     initTabbarHeight = 49,
+     initHeaderHeight = 0,
+     renderScrollHeader,
+-    renderAbsoluteBackgroundContent,
+-    renderAbsoluteForegroundContent,
++    overridenScrollY,
++    overridenTranslateYValue,
+     renderTabView,
+     renderRefreshControl: renderRefreshControlProp,
+     animationHeaderPosition,
+@@ -74,7 +74,8 @@ export const GestureContainer = React.forwardRef<
+   forwardedRef
+ ) {
+   //#region animation value
+-  const shareAnimatedValue = useSharedValue(0);
++  const shareAnimatedValue = overridenScrollY || useSharedValue(0);
++  const translateYValue = overridenTranslateYValue || useSharedValue(0);
+   const curIndexValue = useSharedValue(initialPage);
+   const isSlidingHeader = useSharedValue(false);
+   const slideIndex = useSharedValue(curIndexValue.value);
+@@ -394,12 +395,11 @@ export const GestureContainer = React.forwardRef<
+       <RefreshControlContainer
+         top={refreshControlTop}
+         refreshHeight={refreshHeight}
+-        overflowPull={overflowPull}
++        translateYValue={translateYValue}
+         refreshValue={tabsTrans}
+         opacityValue={opacityValue}
+         isRefreshing={isRefreshing}
+         isRefreshingWithAnimation={isRefreshingWithAnimation}
+-        pullExtendedCoefficient={pullExtendedCoefficient}
+         renderContent={renderRefreshControlProp}
+         refreshControlColor={refreshControlColor}
+       />
+@@ -410,8 +410,7 @@ export const GestureContainer = React.forwardRef<
+     isRefreshingWithAnimation,
+     onStartRefresh,
+     opacityValue,
+-    overflowPull,
+-    pullExtendedCoefficient,
++    translateYValue,
+     refreshControlColor,
+     refreshControlTop,
+     refreshHeight,
+@@ -562,7 +561,7 @@ export const GestureContainer = React.forwardRef<
+     };
+   });
+ 
+-  const translateYValue = useRefreshDerivedValue({
++  useRefreshDerivedValue(translateYValue, {
+     animatedValue: tabsTrans,
+     refreshHeight,
+     overflowPull,
+@@ -602,7 +601,7 @@ export const GestureContainer = React.forwardRef<
+           <Animated.View style={styles.container}>
+             {renderScrollHeader && (
+               <View onLayout={headerOnLayout}>
+-                {renderScrollHeader(translateYValue)}
++                {renderScrollHeader()}
+               </View>
+             )}
+             {navigationState?.routes.length === 0 && emptyBodyComponent ? (
+@@ -687,11 +686,6 @@ export const GestureContainer = React.forwardRef<
+     >
+       <GestureDetector gesture={gestureHandler}>
+         <Animated.View style={[styles.container, opacityStyle]}>
+-          {!!renderAbsoluteBackgroundContent && (
+-            <View style={styles.absoluteBackground}>
+-              {renderAbsoluteBackgroundContent(translateYValue)}
+-            </View>
+-          )}
+           <Animated.View
+             style={[styles.container, animateStyle]}
+             onLayout={containerOnLayout}
+@@ -702,11 +696,6 @@ export const GestureContainer = React.forwardRef<
+             })}
+           </Animated.View>
+           {renderRefreshControl()}
+-          {!!renderAbsoluteForegroundContent && (
+-            <View style={styles.absoluteBackground}>
+-              {renderAbsoluteForegroundContent()}
+-            </View>
+-          )}
+         </Animated.View>
+       </GestureDetector>
+     </HeaderTabContext.Provider>
+@@ -724,9 +713,4 @@ const styles = StyleSheet.create({
+     right: 0,
+     zIndex: 10,
+   },
+-  absoluteBackground: {
+-    position: "absolute",
+-    top: 0,
+-    width: "100%",
+-  },
+ });
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/hooks/use-refresh-value.tsx b/node_modules/@showtime-xyz/universal.collapsible-tab-view/hooks/use-refresh-value.tsx
+index 1d1b4aa..7636e8f 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/hooks/use-refresh-value.tsx
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/hooks/use-refresh-value.tsx
+@@ -3,7 +3,7 @@ import Animated, {
+   useDerivedValue,
+ } from "react-native-reanimated";
+ 
+-export const useRefreshDerivedValue = ({
++export const useRefreshDerivedValue = (translateYValue: Animated.SharedValue<number>,{
+   refreshHeight,
+   overflowPull,
+   animatedValue,
+@@ -15,7 +15,7 @@ export const useRefreshDerivedValue = ({
+   pullExtendedCoefficient: number;
+ }) => {
+   return useDerivedValue(() => {
+-    return interpolate(
++    translateYValue.value = interpolate(
+       animatedValue.value,
+       [0, refreshHeight + overflowPull, refreshHeight + overflowPull + 1],
+       [
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/refresh-control.tsx b/node_modules/@showtime-xyz/universal.collapsible-tab-view/refresh-control.tsx
+index 22a1c80..b318a82 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/refresh-control.tsx
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/refresh-control.tsx
+@@ -8,18 +8,16 @@ import Animated, {
+   useSharedValue,
+ } from "react-native-reanimated";
+ 
+-import { useRefreshDerivedValue } from "./hooks";
+ import { RefreshControlProps, RefreshTypeEnum } from "./types";
+ 
+ type RefreshControlContainerProps = {
+   top: number;
+   refreshHeight: number;
+-  overflowPull: number;
+   opacityValue: Animated.SharedValue<number>;
+   refreshValue: Animated.SharedValue<number>;
+   isRefreshing: Animated.SharedValue<boolean>;
++  translateYValue: Animated.SharedValue<number>;
+   isRefreshingWithAnimation: Animated.SharedValue<boolean>;
+-  pullExtendedCoefficient: number;
+   renderContent?: (refreshProps: RefreshControlProps) => React.ReactElement;
+   refreshControlColor?: string;
+ };
+@@ -27,12 +25,11 @@ type RefreshControlContainerProps = {
+ const RefreshControlContainer: React.FC<RefreshControlContainerProps> = ({
+   top,
+   refreshHeight,
+-  overflowPull,
+   opacityValue,
+   refreshValue,
+   isRefreshing,
++  translateYValue,
+   isRefreshingWithAnimation,
+-  pullExtendedCoefficient,
+   renderContent,
+   refreshControlColor = "#999999",
+ }) => {
+@@ -42,13 +39,6 @@ const RefreshControlContainer: React.FC<RefreshControlContainerProps> = ({
+     return Math.min(refreshValue.value / refreshHeight, 1);
+   });
+ 
+-  const tranYValue = useRefreshDerivedValue({
+-    animatedValue: refreshValue,
+-    refreshHeight,
+-    overflowPull,
+-    pullExtendedCoefficient,
+-  });
+-
+   useAnimatedReaction(
+     () => {
+       return {
+@@ -79,7 +69,7 @@ const RefreshControlContainer: React.FC<RefreshControlContainerProps> = ({
+       opacity: opacityValue.value,
+       transform: [
+         {
+-          translateY: tranYValue.value,
++          translateY: translateYValue.value,
+         },
+       ],
+     };
+diff --git a/node_modules/@showtime-xyz/universal.collapsible-tab-view/types.tsx b/node_modules/@showtime-xyz/universal.collapsible-tab-view/types.tsx
+index 43579c8..2743454 100644
+--- a/node_modules/@showtime-xyz/universal.collapsible-tab-view/types.tsx
++++ b/node_modules/@showtime-xyz/universal.collapsible-tab-view/types.tsx
+@@ -25,13 +25,9 @@ export enum RefreshTypeEnum {
+ 
+ export type CollapsibleHeaderProps<T extends Route> = {
+   initHeaderHeight?: number;
+-  renderScrollHeader: (
+-    translateYValue?: Animated.SharedValue<number>
+-  ) => React.ReactElement | null;
+-  renderAbsoluteBackgroundContent?: (
+-    translateYValue: Animated.SharedValue<number>
+-  ) => React.ReactElement | null;
+-  renderAbsoluteForegroundContent?: () => React.ReactElement | null;
++  renderScrollHeader: () => React.ReactElement | null;
++  overridenScrollY?: Animated.SharedValue<number>;
++  overridenTranslateYValue?: Animated.SharedValue<number>;
+   initTabbarHeight?: number;
+   minHeaderHeight?: number;
+   overflowHeight?: number;
