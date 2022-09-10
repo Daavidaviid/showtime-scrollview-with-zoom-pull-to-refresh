@@ -65,7 +65,7 @@ export const ScrollWithZoom: FunctionComponent = () => {
         onIndexChange={setIndex}
         lazy
         renderScrollHeader={renderScrollHeader}
-        overridenScrollY={scrollY}
+        overridenShareAnimatedValue={scrollY}
         overridenTranslateYValue={translateYValue}
         minHeaderHeight={topInset + DUMMY_HEADER_HEIGHT + StatusBarHeight}
         style={Platform.select({

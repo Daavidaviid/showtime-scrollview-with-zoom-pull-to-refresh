@@ -1887,10 +1887,10 @@
     component-type "^1.2.1"
     join-component "^1.1.0"
 
-"@showtime-xyz/universal.collapsible-tab-view@^0.0.36":
-  version "0.0.36"
-  resolved "https://registry.yarnpkg.com/@showtime-xyz/universal.collapsible-tab-view/-/universal.collapsible-tab-view-0.0.36.tgz#6b166c1ad2892fef07fd74534e30d455d90dcb6b"
-  integrity sha512-HdmjLcJEJhI4zhLAPtD95cWPhA1o3PyDcLnwsEI4BWjWVnN2AgGjJNMmVEro5Gb5sWemtROawD3KEEMWuU+TCQ==
+"@showtime-xyz/universal.collapsible-tab-view@^0.0.38":
+  version "0.0.38"
+  resolved "https://registry.yarnpkg.com/@showtime-xyz/universal.collapsible-tab-view/-/universal.collapsible-tab-view-0.0.38.tgz#76f65e67bb7d12540fc9083718249fb75088ad14"
+  integrity sha512-78sOsVPNNuWDBH6KufpTJXJ+i8vBuzVVZSVO7JUDinaHdEk2AE1vhin6RIGTl9v7ADC0XH1MF8AGTYMF1Vrd9w==
   dependencies:
     "@storybook/react" "6.5.9"
     react-native-tab-view-next "3.1.3"

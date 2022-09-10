@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@showtime-xyz/universal.collapsible-tab-view": "^0.0.36",
+    "@showtime-xyz/universal.collapsible-tab-view": "^0.0.38",
     "expo": "^46.0.0",
     "patch-package": "^6.4.7",
     "postinstall-postinstall": "^2.1.0",
